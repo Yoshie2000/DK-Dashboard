@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>DK Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <span class="refresh" id="refresh"></span>
+
+    <div class="all">
+
+        <div class="header">
+            <h1 id="header">Guten Tag, Patrick!</h1>
+            <span class="qod" id="qod"></span><br>
+            <span class="qod-author" id="qod-author"></span>
+        </div>
+
+        <div class="all-content">
+
+            <!--#region Weather-->
+
+            <div class="weather">
+
+                <h1 class="currentTime" id="currentTime"></h1>
+
+                <span class="weather-container temperature" id="temperature"></span>
+
+                <hr>
+
+                <span class="weather-container overview">
+                    <span class="weatherIcon"><img id="weatherIcon"></span>
+                    <span class="overview-details">
+                        <span class="description" id="description"></span>
+                        <span class="feelsLikeTemperature">Fühlt sich an wie <span
+                                id="feelsLikeTemperature"></span></span>
+                    </span>
+                </span>
+
+                <hr>
+
+                <span class="weather-container">
+                    <span class="clouds">
+                        <img src="assets/weather_icons/03d@2x.png">
+                        <span id="clouds"></span>
+                    </span>
+
+                    <span class="humidity">
+                        <img src="assets/weather_icons/water.png">
+                        <span id="humidity"></span>
+                    </span>
+                </span>
+
+                <span class="text-center">
+                    <span>Das Wetter in einer Stunde</span><br>
+                    <span id="timestamp"></span>
+                </span>
+
+            </div>
+
+            <!--#endregion Weather-->
+
+            <!--#region Homework-->
+
+            <div class="homework-container">
+                <h2>Hausaufgaben</h2>
+                <div class="homework-table-container">
+                    <table class="homework" id="homework">
+
+                    </table>
+                </div>
+            </div>
+
+            <!--#endregion Homework-->
+
+            <div class="conferences">
+                <h2>Konferenzen</h2>
+
+                <div class="conferences-container" id="conferences-container">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        require("./index.js");
+    </script>
+
+</body>
+
+</html>

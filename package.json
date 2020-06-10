@@ -1,0 +1,27 @@
+{
+  "name": "dk-dashboard",
+  "productName": "DK Dashboard",
+  "description": "Ein Dashboard vom DK und ein paar andere hilfreiche Funktionen",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . dk_dashboard --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=\"DK Systems\" --version-string.FileDescription=\"DK Systems\" --version-string.ProductName=\"DK Dashboard\"",
+    "package-linux": "electron-packager . dk_dashboard --overwrite --asar --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds",
+    "create-installer-mac": "electron-installer-dmg ./release-builds/Electron\\ dk-dashboard\\ app-darwin-x64/Electron\\ dk-dashboard\\ app.app dk-dashboard --out=release-builds --overwrite --icon=assets/icons/mac/icon.icns",
+    "create-installer-win": "node installers/windows/createinstaller.js"
+  },
+  "devDependencies": {
+    "electron": "^9.0.0",
+    "electron-packager": "^14.2.1",
+    "electron-winstaller": "^4.0.0",
+    "fs": "0.0.1-security"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "electron-json-storage": "^4.1.8",
+    "request": "^2.88.2"
+  },
+  "author": "Patrick Leonhardt"
+}
