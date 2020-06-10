@@ -16,3 +16,15 @@ The installers are located [here](https://github.com/Yoshie2000/DK-Dashboard/tre
   Now you can modify the source code and see the changes. If you want to create a custom installer, the the section "Create a custom installer".
 
 # Create a custom installer
+## Windows
+1. Build the app<br/>
+  `npm run package-win`
+2. Create the installer<br/>
+  `npm run create-installer-win`
+3. Your installer is now located in the `release-builds/windows-installer` folder. A normal distribution of your app is located in the `release-builds/dk_dashboard-win32-ia32` folder
+## Mac
+1. Build the app<br/>
+  `npm run package-mac`
+2. Create the installer<br/>
+  `npm run create-installer-mac`
+3. Your installer is now located in the `release-builds/mac-installer` folder.
