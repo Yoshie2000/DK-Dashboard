@@ -12,6 +12,11 @@ request("http://quotes.rest/qod", function (error, response) {
   try {
     let data = JSON.parse(response.body);
 
+    if (data.error) {
+      console.log(data.error);
+      return;
+    }
+
     let quote = data.contents.quotes[0].quote;
     let author = data.contents.quotes[0].author;
 
@@ -42,7 +47,7 @@ const defaultStorage = {
   },
   openWeatherMapKey: "",
   userName: "",
-  backgroundImage: ""
+  backgroundImage: "",
 };
 
 // Load from the storage
@@ -72,9 +77,11 @@ storage.get("userData", function (error, data) {
 
     // If the background image exists, copy it over and set the new path. Otherwise the default image will be used
     let backgroundImage = data.backgroundImage;
-    let backgroundImageStorage = path.join(storage.getDataPath(), "background.png").replace(/\\/g, "\\\\");
+    let backgroundImageStorage = path
+      .join(storage.getDataPath(), "background.png")
+      .replace(/\\/g, "\\\\");
     if (backgroundImage) {
-      fileSystem.copyFile(backgroundImage, backgroundImageStorage, function() {
+      fileSystem.copyFile(backgroundImage, backgroundImageStorage, function () {
         document.body.style.backgroundImage = `url('${backgroundImageStorage}')`;
       });
     }
@@ -121,7 +128,12 @@ function loadWeather() {
       humidity: `${parseInt(nextHourData.humidity)}%`,
       temperature: `${parseInt(nextHourData.temp)}°C`,
       description: nextHourData.weather[0].description,
-      icon: path.join(__dirname, "assets", "weather_icons", `${nextHourData.weather[0].icon}@2x.png`),
+      icon: path.join(
+        __dirname,
+        "assets",
+        "weather_icons",
+        `${nextHourData.weather[0].icon}@2x.png`
+      ),
       timestamp: weatherTimestampString,
     };
 
@@ -147,11 +159,15 @@ function loadWeather() {
 
 let dkUUID;
 let dkLoginUrl = function () {
-  return `https://beta.alstergym.logoip.de/login/register?user=${dkUser}&password=${dkPassword}`;
+  return `https://digitalesklassenbuch.alstergym.logoip.de/login/register?user=${dkUser}&password=${dkPassword}`;
+};
+
+let dkHomeworkUrl = function () {
+  return `https://digitalesklassenbuch.alstergym.logoip.de/hausaufgaben/index?user=${dkUser}&uuid=${dkUUID}`;
 };
 
 let dkHomeworkDeleteUrl = function (homeworkID) {
-  return `https://beta.alstergym.logoip.de/hausaufgaben/changeStatus?user=${dkUser}&uuid=${dkUUID}&homeworkID=${homeworkID}&status=true&_action_changeStatus=Abschicken`;
+  return `https://digitalesklassenbuch.alstergym.logoip.de/hausaufgaben/changeStatus?user=${dkUser}&uuid=${dkUUID}&homeworkID=${homeworkID}&status=true&_action_changeStatus=Abschicken`;
 };
 
 function loadHomework() {
@@ -165,93 +181,103 @@ function loadHomework() {
     dkUUID = $("#uuid").val();
     loadConferences();
 
-    let homeworkCells = $("#table-body tr");
+    request(dkHomeworkUrl(), function (error, response) {
+      if (error) {
+        throw error;
+      }
 
-    let allHomework = [];
+      $ = cheerio.load(response.body);
 
-    // Iterate over all homework rows
-    for (let i = 0; i < homeworkCells.length; i++) {
-      let homeworkContent = [];
-      let homeworkID;
+      let homeworkCells = $("table tbody tr");
 
-      let counter = 0;
-      for (let homeworkCellChildren of homeworkCells[i].children) {
-        if (homeworkCellChildren.type != "tag") continue;
+      let allHomework = [];
 
-        // Load the data from the table cell
-        let homeworkCellData;
-        for (let homeworkCellChildrenChildren of homeworkCellChildren.children) {
-          if (homeworkCellChildrenChildren.type == "tag") {
-            if (homeworkCellChildrenChildren.children[0].parent.name == "pre") {
-              homeworkID =
-                homeworkCellChildrenChildren.children[0].parent.attribs.id;
+      // Iterate over all homework rows
+      for (let i = 0; i < homeworkCells.length; i++) {
+        let homeworkContent = [];
+        let homeworkID;
+
+        let counter = 0;
+        for (let homeworkCellChildren of homeworkCells[i].children) {
+          if (homeworkCellChildren.type != "tag") continue;
+
+          // Load the data from the table cell
+          let homeworkCellData;
+          for (let homeworkCellChildrenChildren of homeworkCellChildren.children) {
+            if (homeworkCellChildrenChildren.type == "tag") {
+              if (
+                homeworkCellChildrenChildren.children[0].parent.name == "pre"
+              ) {
+                homeworkID =
+                  homeworkCellChildrenChildren.children[0].parent.attribs.id;
+              }
+
+              homeworkCellData = homeworkCellChildrenChildren.children[0].data;
+              break;
             }
+          }
 
-            homeworkCellData = homeworkCellChildrenChildren.children[0].data;
+          // Push everything into an array
+          homeworkContent.push(homeworkCellData);
+
+          // We only need the first 4 cells
+          counter++;
+          if (counter >= 4) {
             break;
           }
         }
 
-        // Push everything into an array
-        homeworkContent.push(homeworkCellData);
+        // Insert the ID at position 0
+        homeworkContent.unshift(homeworkID);
 
-        // We only need the first 4 cells
-        counter++;
-        if (counter >= 4) {
-          break;
+        allHomework.push(homeworkContent);
+      }
+
+      let homeworkTable = document.getElementById("homework");
+      homeworkTable.innerHTML = "";
+
+      // Iterate over the homework array and display it
+      let homeworkCounter = 0;
+      for (let homework of allHomework) {
+        // Don't display the ID
+        if (homework.length > 0 && homework[0] == undefined) {
+          continue;
         }
+        homeworkCounter++;
+
+        let homeworkRow = document.createElement("tr");
+        homeworkRow.className = "homework-entry";
+
+        // Put the data in a table
+        let index = 0;
+        for (let homeworkEntry of homework) {
+          if (index++ == 0) continue;
+
+          let homeworkCell = document.createElement("td");
+          homeworkCell.innerHTML = homeworkEntry.replace(/\n/g, "<br>");
+          homeworkRow.appendChild(homeworkCell);
+        }
+
+        // Add a delete button with the ID
+        let deleteButtonCell = document.createElement("td");
+        let deleteButton = document.createElement("button");
+        deleteButton.setAttribute("data-id", homework[0]);
+
+        deleteButton.onclick = function () {
+          deleteHomework(this.getAttribute("data-id"));
+        };
+        deleteButtonCell.appendChild(deleteButton);
+        homeworkRow.appendChild(deleteButtonCell);
+
+        homeworkTable.appendChild(homeworkRow);
       }
 
-      // Insert the ID at position 0
-      homeworkContent.unshift(homeworkID);
-
-      allHomework.push(homeworkContent);
-    }
-
-    let homeworkTable = document.getElementById("homework");
-    homeworkTable.innerHTML = "";
-
-    // Iterate over the homework array and display it
-    let homeworkCounter = 0;
-    for (let homework of allHomework) {
-      // Don't display the ID
-      if (homework.length > 0 && homework[0] == undefined) {
-        continue;
+      // If there is no homework, let the user know
+      if (homeworkCounter == 0) {
+        homeworkTable.innerHTML +=
+          "<p class='no-homework'>Du hast keine Hausaufgaben auf</p>";
       }
-      homeworkCounter++;
-
-      let homeworkRow = document.createElement("tr");
-      homeworkRow.className = "homework-entry";
-
-      // Put the data in a table
-      let index = 0;
-      for (let homeworkEntry of homework) {
-        if (index++ == 0) continue;
-
-        let homeworkCell = document.createElement("td");
-        homeworkCell.innerHTML = homeworkEntry.replace(/\n/g, "<br>");
-        homeworkRow.appendChild(homeworkCell);
-      }
-
-      // Add a delete button with the ID
-      let deleteButtonCell = document.createElement("td");
-      let deleteButton = document.createElement("button");
-      deleteButton.setAttribute("data-id", homework[0]);
-
-      deleteButton.onclick = function () {
-        deleteHomework(this.getAttribute("data-id"));
-      };
-      deleteButtonCell.appendChild(deleteButton);
-      homeworkRow.appendChild(deleteButtonCell);
-
-      homeworkTable.appendChild(homeworkRow);
-    }
-
-    // If there is no homework, let the user know
-    if (homeworkCounter == 0) {
-      homeworkTable.innerHTML +=
-        "<p class='no-homework'>Du hast keine Hausaufgaben auf</p>";
-    }
+    });
   });
 }
 
@@ -267,11 +293,11 @@ function deleteHomework(id) {
 //#region Conferences
 
 let dkConferencesUrl = function (uuid) {
-  return `https://beta.alstergym.logoip.de/konferenzen/index?user=${dkUser}&uuid=${uuid}`;
+  return `https://digitalesklassenbuch.alstergym.logoip.de/konferenzen/index?user=${dkUser}&uuid=${uuid}`;
 };
 
 let dkConferenceJoinUrl = function (uuid, conferenceID) {
-  return `https://beta.alstergym.logoip.de/konferenzen/join?user=${dkUser}&uuid=${uuid}&id=${conferenceID}&_action_join=submit`;
+  return `https://digitalesklassenbuch.alstergym.logoip.de/konferenzen/join?user=${dkUser}&uuid=${uuid}&id=${conferenceID}&_action_join=submit`;
 };
 
 function loadConferences() {
@@ -314,7 +340,8 @@ function loadConferences() {
       let tomorrowIndex = -1;
 
       // Find the div that contains tomorrows conferences
-      $(".calendar-cell-active")
+      $(".day.calendar-cell-active")
+        .parent()
         .parent()
         .parent()
         .children()
@@ -328,7 +355,8 @@ function loadConferences() {
         });
 
       // Go through the children of that div to gather the data (Works like with todays conferences)
-      $(".calendar-cell-active")
+      $(".day.calendar-cell-active")
+        .parent()
         .parent()
         .parent()
         .children()
@@ -473,7 +501,9 @@ function updateClock() {
   )}:${`0${date.getMinutes()}`.substr(-2)}`;
 
   let typeOfDay =
-    date.getHours() < 12
+    date.getHours() < 5
+      ? "Gute Nacht"
+      : date.getHours() < 12
       ? "Guten Morgen"
       : date.getHours() < 18
       ? "Guten Tag"
