@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . dk_dashboard --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=\"DK Systems\" --version-string.FileDescription=\"DK Systems\" --version-string.ProductName=\"DK Dashboard\"",
+    "package-win": "electron-packager . dk_dashboard --overwrite --asar --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=\"Alster Systems\" --version-string.FileDescription=\"Alster Systems\" --version-string.ProductName=\"DK Dashboard\"",
     "package-linux": "electron-packager . dk_dashboard --overwrite --asar --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds",
     "create-installer-mac": "electron-installer-dmg ./release-builds/Electron\\ dk-dashboard\\ app-darwin-x64/Electron\\ dk-dashboard\\ app.app dk-dashboard --out=release-builds --overwrite --icon=assets/icons/mac/icon.icns",
     "create-installer-win": "node installers/windows/createinstaller.js"
